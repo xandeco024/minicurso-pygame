@@ -21,7 +21,7 @@ class Jogador(pygame.sprite.Sprite):
     def __init__(self, xInicial, yInicial, largura, altura, velocidade):
         super().__init__()
 
-        self.image = pygame.image.load('mini qyron.png') #carrega a imagem do jogador
+        self.image = pygame.image.load('Artes/mini qyron.png') #carrega a imagem do jogador
         self.image = pygame.transform.scale(self.image, (largura, altura))  #estica a imagem do jogador para o tamanho desejado
         self.olhandoParaDireita = True
 
@@ -74,7 +74,49 @@ class Jogador(pygame.sprite.Sprite):
 
         #fazer gracinha ver se conseguem coocar pra movimentar no wasd e nas setas.
 
-jogador = Jogador(100, 100, 64, 64, 1)
+class Tilemap(): #classe que representa um tilemap, que é utilizado para construir as fases.
+    def __init__(self):
+        self.tamanhoTile = 32 #define a altura e largura de cada tile (porque é um quadrado)
+
+        self.texturas = [
+            "",
+            pygame.transform.scale(pygame.image.load("Artes/grama.png"), (self.tamanhoTile, self.tamanhoTile)),
+            pygame.transform.scale(pygame.image.load("Artes/terra.png"), (self.tamanhoTile, self.tamanhoTile))
+        ]
+
+        self.mapa = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,1,1,0,0,1,1,1,0,0,0,0],
+            [0,0,0,0,0,0,1,2,2,1,0,0,0,0,0,0,0,0],
+            [0,0,0,0,1,1,2,2,2,2,0,0,0,0,0,0,0,0],
+            [1,1,1,1,2,2,2,2,2,2,1,1,1,1,0,0,1,1],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+        ]
+
+        self.tilesColisao = []
+
+        self.superficieTilemap = pygame.Surface((len(self.mapa[0] * self.tamanhoTile), len(self.mapa * self.tamanhoTile)))
+        self.superficieTilemap.set_colorkey((0, 0, 0))
+    def CriarTilemap(self):
+        for linha in range(len(self.mapa)):
+            for coluna in range(len(self.mapa[linha])):
+                if self.mapa[linha][coluna] != 0:
+                    self.superficieTilemap.blit(self.texturas[self.mapa[linha][coluna]], (coluna * self.tamanhoTile, linha * self.tamanhoTile))
+                    self.tilesColisao.append(pygame.Rect(coluna * self.tamanhoTile, linha * self.tamanhoTile, self.tamanhoTile, self.tamanhoTile))
+
+    def DesenharTilemap(self):
+        tela.blit(self.superficieTilemap, (0, 0))
+
+#criando objetos do jogo
+
+tilemap = Tilemap()
+tilemap.CriarTilemap()
+
+jogador = Jogador(100, 100, 32, 32, 1)
 
 #Criando o loop principal
 rodando = True
@@ -94,6 +136,8 @@ while rodando: #enquanto rodando for verdadeiro, o jogo continuará rodando.
 
     #Desenhando um retangulo na tela
     #pygame.draw.rect(tela, jogadorCor, jogadorRect) #desenha na TELA, com a COR DO JOGADOR, um RETANGULO na POSIÇÃO DO JOGADOR, com sua ALTURA E LARGURA.
+
+    tilemap.DesenharTilemap()
 
     jogador.Movimento()
     jogador.DesenharColisor()
