@@ -1,5 +1,5 @@
-#Aula 2: Criando o objeto jogador
-#Compreendendo como funcionam as classes em python e suas funções.
+#Aula 1: Conhecendo o pygame.
+#Compreendendo o loop principal, desenhos e eventos.
 
 #Importando a biblioteca pygame
 import pygame
@@ -16,132 +16,124 @@ tela = pygame.display.set_mode((largura, altura))
 pygame.display.set_caption('projeto pygame')
 
 #criando jogador
+jogadorXInicial = 100
+jogadorYInicial = 100
 
-class Jogador(pygame.sprite.Sprite):
-    def __init__(self, xInicial, yInicial, largura, altura, velocidade):
-        super().__init__()
+jogadorLargura = 32
+jogadorAltura = 64
 
-        self.image = pygame.image.load('Artes/mini qyron.png') #carrega a imagem do jogador
-        self.image = pygame.transform.scale(self.image, (largura, altura))  #estica a imagem do jogador para o tamanho desejado
-        self.olhandoParaDireita = True
+jogadorRect = pygame.Rect(jogadorXInicial, jogadorYInicial, jogadorLargura, jogadorAltura) #cria um retangulo que representa o jogador
+jogadorCor = (200, 105, 19)
 
-        self.rect = pygame.Rect(xInicial, yInicial, largura, altura) #cria um retangulo que representa o jogador
+jogadorVelocidade = 10
+forcaPulo = 10
 
-        self.velocidade = velocidade #define a velocidade que o jogador terá
-        self.velocidadeXY = [0, 0] #define os eixos x e y, que serão utilizados para movimentar o jogador, colisão e animação
+movimentoJogador = [0, 0]
 
-    def Desenhar(self):
-        tela.blit(self.image, self.rect) #desenha a imagem do jogador na tela, na posição do rect do jogador
+gravidade = 0.5
 
-    def DesenharColisor(self):
-        pygame.draw.rect(tela, (255, 0, 0), self.rect, 2) #desenha o rect do jogador na tela
+noChao = False
 
-    def Movimento(self):
-
-        teclas = pygame.key.get_pressed() #pega todas as teclas, que estão sendo pressionadas ou não
-
-        if teclas[pygame.K_RIGHT] == True: #se a tecla direita estiver sendo pressionada
-            self.velocidadeXY[0] = self.velocidade
-
-            if self.olhandoParaDireita == False: #se o jogador estiver olhando para a esquerda
-                self.image = pygame.transform.flip(self.image, True, False) #gire a imagem do jogador
-                self.olhandoParaDireita = True #o jogador agora está olhando para a direita
-
-        elif teclas[pygame.K_LEFT] == True: #se a tecla esquerda estiver sendo pressionada
-            self.velocidadeXY[0] = -self.velocidade #mova o jogador para a esquerda
-
-            if self.olhandoParaDireita == True: #se o jogador estiver olhando para a direita
-                self.image = pygame.transform.flip(self.image, True, False) #gire a imagem do jogador
-                self.olhandoParaDireita = False #o jogador agora está olhando para a esquerda
-
-        else:
-            self.velocidadeXY[0] = 0 #se nem tecla para direita, nem a para esquerda estiver sendo pressionada, a velocidade no eixo x é 0
-
-        if teclas[pygame.K_UP] == True: #se a tecla cima estiver sendo pressionada
-            self.velocidadeXY[1] = -self.velocidade
-
-        elif teclas[pygame.K_DOWN] == True: #se a tecla baixo estiver sendo pressionada
-            self.velocidadeXY[1] = self.velocidade
-
-        else:
-            self.velocidadeXY[1] = 0 #se nem tecla para cima, nem a para baixo estiver sendo pressionada, a velocidade no eixo y é 0
-
-        print(self.velocidadeXY)
-
-        #aplica o movimento no jogador
-        self.rect.x += self.velocidadeXY[0] 
-        self.rect.y += self.velocidadeXY[1]
-
-        #fazer gracinha ver se conseguem coocar pra movimentar no wasd e nas setas.
-
-class Tilemap(): #classe que representa um tilemap, que é utilizado para construir as fases.
-    def __init__(self):
-        self.tamanhoTile = 32 #define a altura e largura de cada tile (porque é um quadrado)
-
-        self.texturas = [
-            "",
-            pygame.transform.scale(pygame.image.load("Artes/grama.png"), (self.tamanhoTile, self.tamanhoTile)),
-            pygame.transform.scale(pygame.image.load("Artes/terra.png"), (self.tamanhoTile, self.tamanhoTile))
-        ]
-
-        self.mapa = [
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,1,1,0,0,1,1,1,0,0,0,0],
-            [0,0,0,0,0,0,1,2,2,1,0,0,0,0,0,0,0,0],
-            [0,0,0,0,1,1,2,2,2,2,0,0,0,0,0,0,0,0],
-            [1,1,1,1,2,2,2,2,2,2,1,1,1,1,0,0,1,1],
-            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2],
-            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-        ]
-
-        self.tilesColisao = []
-
-        self.superficieTilemap = pygame.Surface((len(self.mapa[0] * self.tamanhoTile), len(self.mapa * self.tamanhoTile)))
-        self.superficieTilemap.set_colorkey((0, 0, 0))
-    def CriarTilemap(self):
-        for linha in range(len(self.mapa)):
-            for coluna in range(len(self.mapa[linha])):
-                if self.mapa[linha][coluna] != 0:
-                    self.superficieTilemap.blit(self.texturas[self.mapa[linha][coluna]], (coluna * self.tamanhoTile, linha * self.tamanhoTile))
-                    self.tilesColisao.append(pygame.Rect(coluna * self.tamanhoTile, linha * self.tamanhoTile, self.tamanhoTile, self.tamanhoTile))
-
-    def DesenharTilemap(self):
-        tela.blit(self.superficieTilemap, (0, 0))
-
-#criando objetos do jogo
-
-tilemap = Tilemap()
-tilemap.CriarTilemap()
-
-jogador = Jogador(100, 100, 32, 32, 1)
+chaoRect = pygame.Rect(0, 500, 800, 100)
+paredeRect = pygame.Rect(250, 300, 300, 100)
 
 #Criando o loop principal
 rodando = True
 
 clock = pygame.time.Clock()
-fps = 180
+fps = 60
 
 while rodando: #enquanto rodando for verdadeiro, o jogo continuará rodando.
+
+    clock.tick(fps)
 
     #Verificando se o usuário clicou no botão de fechar a janela
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            rodando = False #se clicou no botão de fechar a janela, rodando se torna falso e o jogo para de rodar
+            rodando = False #se clicou no botão de fechar a janela, rodando se torna falso e o jogo para de rodar.
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and noChao == True:
+                movimentoJogador[1] -= forcaPulo
+                noChao = False
+                print('pulou')
+
+    teclas = pygame.key.get_pressed() #pega todas as teclas, que estão sendo pressionadas ou não
+
+    if teclas[pygame.K_a] == True: #se a tecla esquerda estiver sendo pressionada
+        movimentoJogador[0] = -jogadorVelocidade
+
+    elif teclas[pygame.K_d] == True: #se a tecla direita estiver sendo pressionada
+        movimentoJogador[0] = jogadorVelocidade
+
+    else:
+        movimentoJogador[0] = 0
+
+    '''if teclas[pygame.K_UP] == True: #se a tecla cima estiver sendo pressionada
+        movimentoJogador[1] = -velocidadeJogador
+
+    elif teclas[pygame.K_DOWN] == True: #se a tecla baixo estiver sendo pressionada
+        movimentoJogador[1] = velocidadeJogador
+
+    else:
+        movimentoJogador[1] = 0'''
+
+    jogadorRect.x += movimentoJogador[0]
+
+    if jogadorRect.colliderect(paredeRect) == True:
+        jogadorCor = (0, 0, 255)
+
+        if movimentoJogador[0] > 0: #colisão com a direita
+            jogadorRect.x = paredeRect.x - jogadorRect.width
+            movimentoJogador[0] = 0
+
+        elif movimentoJogador[0] < 0: #esquerda
+            jogadorRect.x = paredeRect.x + paredeRect.width
+            movimentoJogador[0] = 0
+
+    if not noChao:
+        movimentoJogador[1] += gravidade
+
+    jogadorRect.y += movimentoJogador[1]
+
+    if jogadorRect.colliderect(paredeRect) == True:
+        jogadorCor = (0, 0, 255)
+
+        if movimentoJogador[1] > 0: #colisão com o chão
+            jogadorRect.y = paredeRect.y - jogadorRect.height
+            movimentoJogador[1] = 0
+
+        elif movimentoJogador[1] < 0: #colisão com o teto
+            jogadorRect.y = paredeRect.y + paredeRect.height
+            movimentoJogador[1] = 0
+
+    if jogadorRect.colliderect(chaoRect) == True:
+        jogadorCor = (255, 0, 0)
+        
+        if movimentoJogador[1] > 0:
+            jogadorRect.y = chaoRect.y - jogadorRect.height
+            movimentoJogador[1] = 0    
+    
+    if jogadorRect.y + jogadorRect.height >= chaoRect.y:
+        noChao = True
+    
+    else:
+        noChao = False
+
+    #print(jogadorRect.x, jogadorRect.y)
+    #print(noChao)
+    print(movimentoJogador)
+
 
     #Preenchendo a tela com a cor branca, como apagando uma lousa.
-    tela.fill((20, 20, 50))
+    tela.fill((255, 255, 255))
 
     #Desenhando um retangulo na tela
-    #pygame.draw.rect(tela, jogadorCor, jogadorRect) #desenha na TELA, com a COR DO JOGADOR, um RETANGULO na POSIÇÃO DO JOGADOR, com sua ALTURA E LARGURA.
 
-    tilemap.DesenharTilemap()
+    pygame.draw.rect(tela, (100, 255, 100), chaoRect)
+    pygame.draw.rect(tela, (100, 255, 255), paredeRect)
 
-    jogador.Movimento()
-    jogador.DesenharColisor()
-    jogador.Desenhar()
+    pygame.draw.rect(tela, jogadorCor, jogadorRect) #desenha na TELA, com a COR DO JOGADOR, um RETANGULO na POSIÇÃO DO JOGADOR, com sua ALTURA E LARGURA.
 
     #Atualizando a tela (como se você estivesse virando a pagina de um caderno)
-    pygame.display.update() 
+    pygame.display.update()
