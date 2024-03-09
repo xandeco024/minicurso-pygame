@@ -15,6 +15,8 @@ altura = 600
 tela = pygame.display.set_mode((largura, altura))
 pygame.display.set_caption('projeto pygame')
 
+gravidade = 1
+
 #criando jogador
 
 class Jogador(pygame.sprite.Sprite):
@@ -33,13 +35,15 @@ class Jogador(pygame.sprite.Sprite):
         self.velocidade = 10 #define a velocidade que o jogador terá
         self.velocidadeXY = [0, 0] #define os eixos x e y, que serão utilizados para movimentar o jogador, colisão e animação
 
+        self.forcaPulo = 10 #define a força do pulo
+
     def Desenhar(self):
         tela.blit(self.image, self.rect) #desenha a imagem do jogador na tela, na posição do rect do jogador
 
     def DesenharColisor(self):
         pygame.draw.rect(tela, (255, 0, 0), self.rect, 2) #desenha o rect do jogador na tela
 
-    def Movimento(self):
+    def Movimento(self, rectsColisao):
 
         teclas = pygame.key.get_pressed() #pega todas as teclas, que estão sendo pressionadas ou não
 
@@ -73,7 +77,28 @@ class Jogador(pygame.sprite.Sprite):
 
         #aplica o movimento no jogador
         self.rect.x += self.velocidadeXY[0] 
+
+        for rect in rectsColisao: #loop para verificar se o jogador está colidindo horizontalmente com cada um dos tiles que tem colisão.
+            if self.rect.colliderect(rect) == True:
+                if self.velocidadeXY[0] > 0: #colisão com a direita
+                    self.rect.right = rect.left
+                    self.velocidadeXY[0] = 0
+
+                elif self.velocidadeXY[0] < 0: #colisão com a esquerda
+                    self.rect.left = rect.right
+                    self.velocidadeXY[0] = 0
+
         self.rect.y += self.velocidadeXY[1]
+
+        for rect in rectsColisao: #loop para verificar se o jogador está colidindo verticalmente com cada um dos tiles que tem colisão.
+            if self.rect.colliderect(rect) == True:
+                if self.velocidadeXY[1] > 0: #colisão com o chão
+                    self.rect.bottom = rect.top
+                    self.velocidadeXY[1] = 0
+
+                elif self.velocidadeXY[1] < 0: #colisão com o teto
+                    self.rect.top = rect.bottom
+                    self.velocidadeXY[1] = 0
 
         #fazer gracinha ver se conseguem coocar pra movimentar no wasd e nas setas.
 
@@ -104,7 +129,7 @@ class Tilemap(): #classe que representa um tilemap, que é utilizado para constr
 
         self.superficieTilemap = pygame.Surface((len(self.mapa[0] * self.tamanhoTile), len(self.mapa * self.tamanhoTile)))
         self.superficieTilemap.set_colorkey((0, 0, 0))
-        
+
     def CriarTilemap(self):
         for linha in range(len(self.mapa)):
             for coluna in range(len(self.mapa[linha])):
@@ -145,7 +170,7 @@ while rodando: #enquanto rodando for verdadeiro, o jogo continuará rodando.
 
     tilemap.DesenharTilemap()
 
-    jogador.Movimento()
+    jogador.Movimento(tilemap.tilesColisao)
     jogador.DesenharColisor()
     jogador.Desenhar()
 

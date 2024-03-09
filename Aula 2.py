@@ -1,4 +1,4 @@
-#Aula 1: Conhecendo o pygame.
+#Aula 2: Conhecendo o pygame.
 #Compreendendo o loop principal, desenhos e eventos.
 
 #Importando a biblioteca pygame
@@ -35,7 +35,7 @@ gravidade = 0.5
 noChao = False
 
 chaoRect = pygame.Rect(0, 500, 800, 100)
-paredeRect = pygame.Rect(250, 300, 300, 100)
+blocoRect = pygame.Rect(250, 300, 300, 100)
 
 #Criando o loop principal
 rodando = True
@@ -52,12 +52,6 @@ while rodando: #enquanto rodando for verdadeiro, o jogo continuará rodando.
         if event.type == pygame.QUIT:
             rodando = False #se clicou no botão de fechar a janela, rodando se torna falso e o jogo para de rodar.
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE and noChao == True:
-                movimentoJogador[1] -= forcaPulo
-                noChao = False
-                print('pulou')
-
     teclas = pygame.key.get_pressed() #pega todas as teclas, que estão sendo pressionadas ou não
 
     if teclas[pygame.K_a] == True: #se a tecla esquerda estiver sendo pressionada
@@ -69,6 +63,13 @@ while rodando: #enquanto rodando for verdadeiro, o jogo continuará rodando.
     else:
         movimentoJogador[0] = 0
 
+    if teclas[pygame.K_SPACE] == True and noChao == True:
+        movimentoJogador[1] -= forcaPulo
+        noChao = False
+        print('pulou')
+
+
+    #como será um jogo de plataforma, o jogador não se moverá livremente no eixo Y. tornando desnecessária essa parte do código.
     '''if teclas[pygame.K_UP] == True: #se a tecla cima estiver sendo pressionada
         movimentoJogador[1] = -velocidadeJogador
 
@@ -80,15 +81,15 @@ while rodando: #enquanto rodando for verdadeiro, o jogo continuará rodando.
 
     jogadorRect.x += movimentoJogador[0]
 
-    if jogadorRect.colliderect(paredeRect) == True:
+    if jogadorRect.colliderect(blocoRect) == True:
         jogadorCor = (0, 0, 255)
 
         if movimentoJogador[0] > 0: #colisão com a direita
-            jogadorRect.x = paredeRect.x - jogadorRect.width
+            jogadorRect.x = blocoRect.x - jogadorRect.width
             movimentoJogador[0] = 0
 
         elif movimentoJogador[0] < 0: #esquerda
-            jogadorRect.x = paredeRect.x + paredeRect.width
+            jogadorRect.x = blocoRect.x + blocoRect.width
             movimentoJogador[0] = 0
 
     if not noChao:
@@ -96,15 +97,15 @@ while rodando: #enquanto rodando for verdadeiro, o jogo continuará rodando.
 
     jogadorRect.y += movimentoJogador[1]
 
-    if jogadorRect.colliderect(paredeRect) == True:
+    if jogadorRect.colliderect(blocoRect) == True:
         jogadorCor = (0, 0, 255)
 
         if movimentoJogador[1] > 0: #colisão com o chão
-            jogadorRect.y = paredeRect.y - jogadorRect.height
+            jogadorRect.y = blocoRect.y - jogadorRect.height
             movimentoJogador[1] = 0
 
         elif movimentoJogador[1] < 0: #colisão com o teto
-            jogadorRect.y = paredeRect.y + paredeRect.height
+            jogadorRect.y = blocoRect.y + blocoRect.height
             movimentoJogador[1] = 0
 
     if jogadorRect.colliderect(chaoRect) == True:
@@ -112,28 +113,16 @@ while rodando: #enquanto rodando for verdadeiro, o jogo continuará rodando.
         
         if movimentoJogador[1] > 0:
             jogadorRect.y = chaoRect.y - jogadorRect.height
-            movimentoJogador[1] = 0    
-    
-    if jogadorRect.y + jogadorRect.height >= chaoRect.y:
-        noChao = True
-    
-    else:
-        noChao = False
+            movimentoJogador[1] = 0   
+            noChao = True #se o jogador está no chão, noChao é verdadeiro.
 
-    #print(jogadorRect.x, jogadorRect.y)
-    #print(noChao)
     print(movimentoJogador)
 
-
-    #Preenchendo a tela com a cor branca, como apagando uma lousa.
     tela.fill((255, 255, 255))
 
-    #Desenhando um retangulo na tela
-
     pygame.draw.rect(tela, (100, 255, 100), chaoRect)
-    pygame.draw.rect(tela, (100, 255, 255), paredeRect)
+    pygame.draw.rect(tela, (100, 255, 255), blocoRect)
 
-    pygame.draw.rect(tela, jogadorCor, jogadorRect) #desenha na TELA, com a COR DO JOGADOR, um RETANGULO na POSIÇÃO DO JOGADOR, com sua ALTURA E LARGURA.
+    pygame.draw.rect(tela, jogadorCor, jogadorRect)
 
-    #Atualizando a tela (como se você estivesse virando a pagina de um caderno)
     pygame.display.update()
