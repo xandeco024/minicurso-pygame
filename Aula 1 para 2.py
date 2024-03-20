@@ -5,7 +5,7 @@
 import pygame
 
 #Inicializando os módulos do pygame (como se você estivesse ligando os interruptores da sua casa, os eletrodomesticos e etc... antes de começar a utiliza-la)
-pygame.init()
+pygame.init()   
 
 #Definindo a largura e altura da tela
 largura = 800

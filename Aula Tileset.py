@@ -20,13 +20,13 @@ gravidade = 1
 #criando jogador
 
 class Jogador(pygame.sprite.Sprite):
-    def __init__(self, xInicial, yInicial):
+      self, xInicial, yInicial):
         super().__init__()
 
         self.largura = 64
         self.altura = 64
 
-        self.image = pygame.image.load('Artes/mini qyron.png') #carrega a imagem do jogador
+        self.image = pygame.image.load('Arquivos/Artes/mini qyron.png') #carrega a imagem do jogador
         self.image = pygame.transform.scale(self.image, (self.largura, self.altura))  #estica a imagem do jogador para o tamanho desejado
         self.olhandoParaDireita = True
 
@@ -108,8 +108,8 @@ class Tilemap(): #classe que representa um tilemap, que é utilizado para constr
 
         self.texturas = [
             "",
-            pygame.transform.scale(pygame.image.load("Artes/grama.png"), (self.tamanhoTile, self.tamanhoTile)),
-            pygame.transform.scale(pygame.image.load("Artes/terra.png"), (self.tamanhoTile, self.tamanhoTile))
+            pygame.transform.scale(pygame.image.load("Arquivos/Artes/grama.png"), (self.tamanhoTile, self.tamanhoTile)),
+            pygame.transform.scale(pygame.image.load("Arquivos/Artes/terra.png"), (self.tamanhoTile, self.tamanhoTile))
         ]
 
         self.mapa = [
