@@ -5,7 +5,8 @@ import pygame
 largura = 800
 altura = 600
 
-janela = pygame.display.set_mode((largura, altura))
+flags = pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE
+janela = pygame.display.set_mode((largura, altura), flags)
 pygame.display.set_caption("projeto pygame")
 
 jogadorLargura = 200
