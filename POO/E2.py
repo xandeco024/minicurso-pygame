@@ -1,21 +1,17 @@
-class Pessoa: #Classe pessoa que recebe nome, idade e profissão
-    def __init__(self, nome, idade, profissao):
+class Cachorro:
+    def __init__(self, nome, raca, idade):
         self.nome = nome
+        self.raca = raca
         self.idade = idade
-        self.profissao = profissao
 
     def Apresentar(self):
-        print("Olá, meu nome é", self.nome,", tenho", self.idade, "anos e sou ", self.profissao)
+        print("auau, meu aunome é :", self.nome)
+        print("auau, minha auraca é :", self.raca)
+        print("auau, minha auidade é :", self.idade)
 
-    def Trabalhar(self):
-        print("Estou trabalhando")
+    def Latir(self):
+        print("auau, latindo intensamente")
 
-    def Envelhecer(self):
-        self.idade += 1
+cachorro1 = Cachorro("Rex", "Vira-lata", 3)
+cachorro1.Apresentar()
 
-pessoa1 = Pessoa("João", 25, "Programador") 
-
-pessoa1.Apresentar()
-pessoa1.Trabalhar()
-pessoa1.Envelhecer()
-pessoa1.Apresentar()
