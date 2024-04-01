@@ -24,7 +24,7 @@ class Jogador():
         self.rect = pygame.Rect(self.xInicial, self.xInicial, self.largura, self.altura) #cria um retangulo que representa o jogador
         self.cor = (200, 105, 19)
  
-        self.velocidade = 10
+        self.velocidade = 10    
 
     def Desenhar(self):
         pygame.draw.rect(tela, self.cor, self.rect)
