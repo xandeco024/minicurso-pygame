@@ -20,7 +20,7 @@ gravidade = 1
 #criando jogador
 
 class Jogador(pygame.sprite.Sprite):
-      self, xInicial, yInicial):
+    def __init__(self, xInicial, yInicial):
         super().__init__()
 
         self.largura = 64
