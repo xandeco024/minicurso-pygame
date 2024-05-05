@@ -11,6 +11,7 @@ pygame.display.set_caption('projeto pygame') ##define o nome da janela
 class Jogador:
     def __init__(self, usaSetas):
         self.largura = 50
+        self.largura = 50
         self.altura = 100
 
         self.xInicial = 100
