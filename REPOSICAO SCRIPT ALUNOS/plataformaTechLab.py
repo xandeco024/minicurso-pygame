@@ -12,16 +12,16 @@ gravidade = 0.9
 colisoes = []
 
 class Jogador:
-    def __init__(self, usaSetas):
+    def __init__(self):
         self.largura = 50
         self.altura = 100
 
         self.xInicial = 100
         self.yInicial = 100
 
-        self.sprite = pygame.image.load("Aula 4 (Colisão & Gravidade & Sprite)/sanic.png")
-        self.sprite = pygame.transform.scale(self.sprite, (96, 96))
-        self.correcao = [self.largura/2 - 48, self.altura - 96]
+        self.sprite = pygame.image.load("REPOSICAO SCRIPT ALUNOS/steve.png")
+        self.sprite = pygame.transform.scale(self.sprite, (48, 96))
+        self.correcao = [self.largura/2 - 24, self.altura - 96]
         self.olhandoParaDireita = True
 
         self.rect = pygame.Rect(self.xInicial, self.yInicial, self.largura, self.altura)
@@ -32,9 +32,6 @@ class Jogador:
         self.forcaPulo = 15
         self.estaNoChao = False
         self.pulos = 2
-
-        self.usaSetas = usaSetas
-
         self.rect.x += self.velocidade
 
     def Desenhar(self):
@@ -55,16 +52,13 @@ class Jogador:
 
         else:
             self.movimento[1] = 0'''
-
-        print(self.movimento)
+        
         #aplica o movimento Y no jogador
         self.rect.y += self.movimento[1]
-
         self.movimento[1] += gravidade
 
         for colisor in colisores:
             if self.rect.colliderect(colisor):
-                print("colidiu")
 
                 if self.movimento[1] > 0:
                     self.rect.bottom = colisor.top
@@ -118,21 +112,37 @@ class Tilemap:
 
         self.texturas = [
             '',
-            pygame.transform.scale(pygame.image.load("Aula 5 (Tilemap)/grama.png"), (self.tamanhoTile, self.tamanhoTile)),
-            pygame.transform.scale(pygame.image.load("Aula 5 (Tilemap)/terra.png"), (self.tamanhoTile, self.tamanhoTile))
+            pygame.transform.scale(pygame.image.load("REPOSICAO SCRIPT ALUNOS/grama.png"), (self.tamanhoTile, self.tamanhoTile)),
+            pygame.transform.scale(pygame.image.load("REPOSICAO SCRIPT ALUNOS/terra.png"), (self.tamanhoTile, self.tamanhoTile))
         ]
 
         self.mapa = [
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0,1,1,0,0,1,1,1,0,0,0,0],
-            [0,0,0,0,0,0,1,2,2,1,0,0,0,0,0,0,0,0],
-            [0,0,0,0,1,1,2,2,2,2,0,0,0,0,0,0,0,0],
-            [1,1,1,1,2,2,2,2,2,2,1,1,1,1,0,0,1,1],
-            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2],
-            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
         ]
 
 
@@ -150,7 +160,7 @@ class Tilemap:
     def DesenharTilemap(self):
         tela.blit(self.superficieTilemap, (0, 0))
 
-jogadorClaudio = Jogador(False)
+jogador = Jogador()
 
 tilemap = Tilemap()
 tilemap.CriarTilemap()
@@ -168,15 +178,15 @@ while rodando:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                jogadorClaudio.Pulo()
+                jogador.Pulo()
 
-    jogadorClaudio.Movimento(colisoes)
+    jogador.Movimento(colisoes)
 
     tela.fill((255, 255, 255))
 
     tilemap.DesenharTilemap()
     
-    jogadorClaudio.DesenharColisor()
-    jogadorClaudio.Desenhar() 
+    jogador.DesenharColisor()
+    jogador.Desenhar() 
 
     pygame.display.update() #atualiza a tela

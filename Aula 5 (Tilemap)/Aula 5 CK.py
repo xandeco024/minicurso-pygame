@@ -20,7 +20,7 @@ class Jogador:
         self.xInicial = 100
         self.yInicial = 100
 
-        self.sprite = pygame.image.load("Aula 4 (Colisão & Gravidade & Sprite)/sanic.png")
+        self.sprite = pygame.image.load("Aula 5 (Tilemap)/sanic.png")
         self.sprite = pygame.transform.scale(self.sprite, (96, 96))
         self.correcao = [self.largura/2 - 48, self.altura - 96]
         self.olhandoParaDireita = True
