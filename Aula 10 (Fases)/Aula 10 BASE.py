@@ -11,13 +11,14 @@ pygame.display.set_caption('projeto pygame') ##define o nome da janela
 #removeu o pygame.display.update da camera e criou a hud
 
 class Jogador:
-    def __init__(self, gravidade, colisores, mundo):
+    def __init__(self, gravidade, colisores, mundo, objetos):
         self.largura = 64
         self.altura = 128
 
         self.colisores = colisores
         self.mundo = mundo
         self.gravidade = gravidade
+        self.objetos = objetos
 
         self.xInicial = 128
         self.yInicial = 64*14
@@ -35,6 +36,9 @@ class Jogador:
 
         self.rect = pygame.Rect(self.xInicial, self.yInicial, self.largura, self.altura)
         self.cor = (135, 206, 235)
+
+        self.gatilhoPulo = False
+        self.gatilhoDisparo = False
 
         self.movimento = [0 ,0]
         self.velocidade = 10
@@ -65,7 +69,6 @@ class Jogador:
         pygame.draw.rect(superficie, self.cor, self.rect, 5)
 
     def Movimento(self):
-
         teclas = pygame.key.get_pressed()
 
         '''if teclas[pygame.K_w] == True:
@@ -179,6 +182,24 @@ class Jogador:
     def Atualizar(self):
         self.Movimento()
         self.RestringirAoMundo()
+
+        teclas = pygame.key.get_pressed()
+
+        if teclas[pygame.K_SPACE] == True:
+            if self.gatilhoPulo == False:
+                self.Pulo()
+                self.gatilhoPulo = True
+
+        else:
+            self.gatilhoPulo = False
+
+        if teclas[pygame.K_q] == True:
+            if self.gatilhoDisparo == False:
+                self.Disparar(self.objetos)
+                self.gatilhoDisparo = True
+        
+        else:
+            self.gatilhoDisparo = False
 
         if self.vidaAtual <= 0:
             self.Morrer()
@@ -508,7 +529,7 @@ class Fase1:
         self.colisores = []
         self.objetos = Grupo()
 
-        self.jogador = Jogador(self.gravidade, self.colisores, self.mundo)
+        self.jogador = Jogador(self.gravidade, self.colisores, self.mundo, self.objetos)
         self.objetos.Adicionar(self.jogador)
 
         mapa = [
@@ -602,7 +623,7 @@ class Fase2:
         self.colisores = []
         self.objetos = Grupo()
 
-        self.jogador = Jogador(self.gravidade, self.colisores, self.mundo)
+        self.jogador = Jogador(self.gravidade, self.colisores, self.mundo, self.objetos)
         self.objetos.Adicionar(self.jogador)
 
         mapa = [
@@ -727,16 +748,6 @@ while rodando:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             rodando = False
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                if gerenciadorDeFases.faseAtual.jogador != None:
-                    gerenciadorDeFases.faseAtual.jogador.Pulo()
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                if gerenciadorDeFases.faseAtual.jogador != None:
-                    gerenciadorDeFases.faseAtual.jogador.Disparar(gerenciadorDeFases.faseAtual.objetos)
 
     gerenciadorDeFases.faseAtual.Atualizar()
     gerenciadorDeFases.faseAtual.Desenhar(tela)

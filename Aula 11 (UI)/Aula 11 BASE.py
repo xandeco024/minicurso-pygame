@@ -11,13 +11,14 @@ pygame.display.set_caption('projeto pygame') ##define o nome da janela
 #removeu o pygame.display.update da camera e criou a hud
 
 class Jogador:
-    def __init__(self, gravidade, colisores, mundo):
+    def __init__(self, gravidade, colisores, mundo, objetos):
         self.largura = 64
         self.altura = 128
 
         self.colisores = colisores
         self.mundo = mundo
         self.gravidade = gravidade
+        self.objetos = objetos
 
         self.xInicial = 128
         self.yInicial = 64*14
@@ -35,6 +36,9 @@ class Jogador:
 
         self.rect = pygame.Rect(self.xInicial, self.yInicial, self.largura, self.altura)
         self.cor = (135, 206, 235)
+
+        self.gatilhoDisparo = True
+        self.gatilhoPulo = True
 
         self.movimento = [0 ,0]
         self.velocidade = 10
@@ -179,6 +183,32 @@ class Jogador:
     def Atualizar(self):
         self.Movimento()
         self.RestringirAoMundo()
+
+        teclas = pygame.key.get_pressed()
+        botoes = pygame.mouse.get_pressed()
+
+        if teclas[pygame.K_SPACE] == True:
+            if self.gatilhoPulo == False:
+                self.Pulo()
+                self.gatilhoPulo = True
+
+        else:
+            self.gatilhoPulo = False
+
+        #if teclas[pygame.K_q] == True:
+        #    if self.gatilhoDisparo == False:
+        #        self.Disparar(self.objetos)
+        #        self.gatilhoDisparo = True
+        #
+        #else:
+        #    self.gatilhoDisparo = False
+            
+        if botoes[0] == True:
+            if self.gatilhoDisparo == False:
+                self.Disparar(self.objetos)
+                self.gatilhoDisparo = True
+        else:
+            self.gatilhoDisparo = False
 
         if self.vidaAtual <= 0:
             self.Morrer()
@@ -508,7 +538,7 @@ class Fase1:
         self.colisores = []
         self.objetos = Grupo()
 
-        self.jogador = Jogador(self.gravidade, self.colisores, self.mundo)
+        self.jogador = Jogador(self.gravidade, self.colisores, self.mundo, self.objetos)
         self.objetos.Adicionar(self.jogador)
 
         mapa = [
@@ -602,7 +632,7 @@ class Fase2:
         self.colisores = []
         self.objetos = Grupo()
 
-        self.jogador = Jogador(self.gravidade, self.colisores, self.mundo)
+        self.jogador = Jogador(self.gravidade, self.colisores, self.mundo, self.objetos)
         self.objetos.Adicionar(self.jogador)
 
         mapa = [
@@ -685,30 +715,40 @@ class MenuInicial:
     def __init__(self, gerenciadorDeFases):
         self.gerenciadorDeFases = gerenciadorDeFases
 
+        self.fundo = pygame.image.load("Aula 11 (UI)/background.png")
+        self.fundo = pygame.transform.scale(self.fundo, (1280, 720))
+
+        self.titulo = pygame.image.load("Aula 11 (UI)/title.png")
+        self.titulo = pygame.transform.scale(self.titulo, (512+256+128, 256+128+64))
+
         self.grupoObjetos = Grupo()
 
         self.fonte = pygame.font.Font("Aula 8 (HUD)/Kenney Pixel Square.ttf", 32)
         self.texto = self.fonte.render("Pressione ESPAÇO para começar", True, (255, 255, 255))
 
         #self.botaoIniciar = BotaoUI(640-128, 360, 256, 64, (0, 255, 0), "Iniciar")
-        self.botaoIniciar = BotaoUI(640-128, 360, 256, 64, (100, 255, 100), (0, 255, 0), "Iniciar", (255, 255, 255), "maça")
+        self.botaoIniciar = BotaoUI(640-128, 360, 256, 64, (100, 255, 100), (0, 255, 0), "Iniciar", (255, 255, 255), self.Iniciar)
         self.grupoObjetos.Adicionar(self.botaoIniciar)
         
         #self.botaoSair = BotaoUI(640-128, 360+64+32, 256, 64, (0, 255, 0), "Sair")
-        self.botaoSair = BotaoUI(640-128, 360+64+32, 256, 64, (100, 255, 100), (0, 255, 0), "Sair", (255, 255, 255), "banana")
+        self.botaoSair = BotaoUI(640-128, 360+64+32, 256, 64, (100, 255, 100), (0, 255, 0), "Sair", (255, 255, 255), self.Sair)
         self.grupoObjetos.Adicionar(self.botaoSair)
 
+    def Iniciar(self):
+        self.gerenciadorDeFases.CarregarFase("fase1")
+
+    def Sair(self):
+        pygame.quit()
+
     def Atualizar(self):
-        teclas = pygame.key.get_pressed()
-
-        if teclas[pygame.K_LCTRL]:
-            self.gerenciadorDeFases.CarregarFase("fase1")
-
         self.grupoObjetos.Atualizar()
 
     def Desenhar(self, tela):
         tela.fill((0, 0, 0))
-        tela.blit(self.texto, (64*5, 64*5))
+        
+        tela.blit(self.fundo, (0, 0))
+        tela.blit(self.titulo, (640-256-128-64, 0))
+
         self.grupoObjetos.Desenhar(tela)
 
 class BotaoUI:
@@ -722,7 +762,7 @@ class BotaoUI:
         self.acao = acao
 
     def Clicar(self):
-        print("clicou")
+        self.acao()
         pass
 
     def Desenhar(self, tela):
@@ -773,17 +813,6 @@ while rodando:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             rodando = False
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                if gerenciadorDeFases.faseAtual.jogador != None:
-                    gerenciadorDeFases.faseAtual.jogador.Pulo()
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                #if gerenciadorDeFases.faseAtual.jogador != None:
-                #   gerenciadorDeFases.faseAtual.jogador.Disparar(gerenciadorDeFases.faseAtual.objetos)
-                pass
 
     gerenciadorDeFases.faseAtual.Atualizar()
     gerenciadorDeFases.faseAtual.Desenhar(tela)
