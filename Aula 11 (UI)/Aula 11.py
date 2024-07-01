@@ -1,4 +1,4 @@
-import pygame
+import pygame, sys
 
 pygame.init()
 
@@ -758,7 +758,10 @@ class MenuInicial:
         self.gerenciadorDeFases.CarregarFase("fase1")
 
     def Sair(self):
+        #global rodando
+        #rodando = False
         pygame.quit()
+        sys.exit()
 
     def Atualizar(self):
         self.grupoObjetos.Atualizar()
