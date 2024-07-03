@@ -6,7 +6,7 @@ largura = 1280
 altura = 720
 
 tela = pygame.display.set_mode((largura, altura)) #cria a janela com o tamanho especificado
-pygame.display.set_caption('Cenourinha Adventure Pygame Edition') ##define o nome da janela
+pygame.display.set_caption('joguinho bonitinho') ##define o nome da janela
 
 #removeu o pygame.display.update da camera e criou a hud
 
@@ -21,12 +21,20 @@ class Jogador:
         self.objetos = objetos
 
         self.xInicial = 128
-        self.yInicial = 64*9
+        self.yInicial = 64*14
 
         self.sprite = pygame.image.load("Assets/Sprites/Cenourinha/parado1.png")
         self.sprite = pygame.transform.scale(self.sprite, (self.largura, self.altura))
 
         self.animacoes = {
+            'parado': {
+                'nome': 'parado',
+                'sprites': [
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/parado1.png"), (self.largura, self.altura)),
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/parado2.png"), (self.largura, self.altura)),
+                ],
+                'velocidade': 0.1
+            },
             'andando': {
                 'nome': 'andando',
                 'sprites': [
@@ -34,41 +42,20 @@ class Jogador:
                     pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/andando2.png"), (self.largura, self.altura)),
                     pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/andando3.png"), (self.largura, self.altura)),
                     pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/andando4.png"), (self.largura, self.altura)),
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/andando5.png"), (self.largura, self.altura)),
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/andando6.png"), (self.largura, self.altura)),
                 ],
-                'velocidade': 0.15
+                'velocidade': 0.1
             },
-
-            'parado': {
-                'nome': 'parado',
-                'sprites': [
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/parado1.png"), (self.largura, self.altura)),
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/parado2.png"), (self.largura, self.altura)),
-                ],
-                'velocidade': 0.075
-            },
-
             'pulando': {
                 'nome': 'pulando',
                 'sprites': [
                     pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/pulando.png"), (self.largura, self.altura)),
                 ],
                 'velocidade': 0.1
-            },
-
-            'dano': {
-                'nome': 'dano',
-                'sprites': [
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Cenourinha/dano.png"), (self.largura, self.altura)),
-                ],
-                'velocidade': 0.1
             }
         }
 
         self.animador = Animador(self.animacoes)
-
-        self.animador.DefinirAnimacao('parado')
+        self.animador.DefinirAnimacao("parado")
 
         self.correcao = [0,0]
         self.olhandoParaDireita = True
@@ -76,21 +63,21 @@ class Jogador:
         self.rect = pygame.Rect(self.xInicial, self.yInicial, self.largura, self.altura)
         self.cor = (135, 206, 235)
 
-        self.gatilhoDisparo = True
-        self.gatilhoPulo = True
+        self.pulou = False
+        self.atirou = False
 
         self.movimento = [0 ,0]
-        self.velocidade = 8
+        self.velocidade = 10
         self.forcaPulo = 15
         self.estaNoChao = False
         self.pulos = 2
         self.podeSerControlado = True
 
-        self.puloSFX = pygame.mixer.Sound("Assets/SFX/pulo.wav")
+        self.puloSFX = pygame.mixer.Sound("Aula 9 (SOM)/SFX/pulo.wav")
         self.puloSFX.set_volume(0.1)
-        self.tiroSFX = pygame.mixer.Sound("Assets/SFX/tiro.wav")
+        self.tiroSFX = pygame.mixer.Sound("Aula 9 (SOM)/SFX/tiro.wav")
         self.tiroSFX.set_volume(0.1)
-        self.danoSFX = pygame.mixer.Sound("Assets/SFX/dano.wav")
+        self.danoSFX = pygame.mixer.Sound("Aula 9 (SOM)/SFX/dano.wav")
         self.danoSFX.set_volume(0.1)
 
         self.dano = 1
@@ -101,8 +88,18 @@ class Jogador:
 
         self.pontos = 0
 
+    def ControladorAnimacao(self):
+        if self.movimento[0] != 0 and self.animador.PuxarAnimacaoAtual() != "andando":
+            self.animador.DefinirAnimacao("andando")
+
+        elif self.movimento[0] == 0 and self.animador.PuxarAnimacaoAtual() != "parado":
+            self.animador.DefinirAnimacao("parado")
+
+        if self.estaNoChao == False and self.animador.PuxarAnimacaoAtual() != "pulando":
+            self.animador.DefinirAnimacao("pulando")
+
     def Desenhar(self, superficie):
-        self.sprite = self.animador.SpriteAtual()
+        self.sprite = self.animador.PuxarSpriteAtual()
         if self.olhandoParaDireita == False:
             self.sprite = pygame.transform.flip(self.sprite, True, False)
         superficie.blit(self.sprite, (self.rect.x + self.correcao[0], self.rect.y + self.correcao[1]))
@@ -111,7 +108,6 @@ class Jogador:
         pygame.draw.rect(superficie, self.cor, self.rect, 5)
 
     def Movimento(self):
-
         teclas = pygame.key.get_pressed()
 
         '''if teclas[pygame.K_w] == True:
@@ -145,14 +141,14 @@ class Jogador:
                 self.movimento[0] = -self.velocidade
 
                 if self.olhandoParaDireita == True:
-                    #self.sprite = pygame.transform.flip(self.sprite, True, False)
+                    self.sprite = pygame.transform.flip(self.sprite, True, False)
                     self.olhandoParaDireita = False
 
             elif teclas[pygame.K_d] == True:
                 self.movimento[0] = self.velocidade
 
                 if self.olhandoParaDireita == False:
-                    #self.sprite = pygame.transform.flip(self.sprite, True, False)
+                    self.sprite = pygame.transform.flip(self.sprite, True, False)
                     self.olhandoParaDireita = True
 
             else:
@@ -199,7 +195,6 @@ class Jogador:
         self.rect.y = self.yInicial
 
         self.vidaAtual = self.vidaMaxima
-        #remover self.sprite = self.sprite
         self.podeSerControlado = True
         self.levandoDano = False
         self.temporizadorknockback = 0
@@ -222,63 +217,38 @@ class Jogador:
         projetil = ProjetilJogador(self, objetos)
         objetos.Adicionar(projetil)
 
-    def Animar(self):
-        if self.movimento[0] != 0 and self.animador.AnimacaoAtual() != 'andando':
-            self.animador.DefinirAnimacao('andando')
-
-        elif self.movimento[0] == 0 and self.animador.AnimacaoAtual() != 'parado':
-            self.animador.DefinirAnimacao('parado')
-
-        if self.estaNoChao == False and self.animador.AnimacaoAtual() != 'pulando':
-            self.animador.DefinirAnimacao('pulando')
-
-        if self.levandoDano == True and self.animador.AnimacaoAtual() != 'dano':
-            self.animador.DefinirAnimacao('dano')
-
     def Atualizar(self):
         self.Movimento()
         self.RestringirAoMundo()
-        self.Animar()
+        self.ControladorAnimacao()
         self.animador.Atualizar()
 
         teclas = pygame.key.get_pressed()
-        botoes = pygame.mouse.get_pressed()
 
-        if teclas[pygame.K_SPACE] == True:
-            if self.gatilhoPulo == False:
-                self.Pulo()
-                self.gatilhoPulo = True
+        if teclas[pygame.K_SPACE] == True and self.pulou == False:
+            self.Pulo()
+            self.pulou = True
 
-        else:
-            self.gatilhoPulo = False
+        elif teclas[pygame.K_SPACE] == False:
+            self.pulou = False
 
-        #if teclas[pygame.K_q] == True:
-        #    if self.gatilhoDisparo == False:
-        #        self.Disparar(self.objetos)
-        #        self.gatilhoDisparo = True
-        #
-        #else:
-        #    self.gatilhoDisparo = False
-            
-        if botoes[0] == True:
-            if self.gatilhoDisparo == False:
-                self.Disparar(self.objetos)
-                self.gatilhoDisparo = True
-        else:
-            self.gatilhoDisparo = False
+        if teclas[pygame.K_q] == True and self.atirou == False: 
+            self.Disparar(self.objetos)
+            self.atirou = True
+
+        elif teclas[pygame.K_q] == False:
+            self.atirou = False
 
         if self.vidaAtual <= 0:
             self.Morrer()
         
         if self.levandoDano == True:
             self.temporizadorknockback += 1
-            ##remover self.sprite = self.spriteDano
 
             if self.temporizadorknockback > 10:
                 self.levandoDano = False
                 self.podeSerControlado = True
                 self.temporizadorknockback = 0
-                ##remover self.sprite = self.sprite
 
 class ProjetilJogador:
     def __init__(self, jogador, objetos):
@@ -288,16 +258,15 @@ class ProjetilJogador:
         self.largura = 32
         self.altura = 32
 
-        self.sprite = pygame.image.load("Assets/Sprites/Cenourinha/cenoura.png")
+        self.sprite = pygame.image.load("Aula 7 (Combate 2)/projetil.png")
         self.sprite = pygame.transform.scale(self.sprite, (self.largura, self.altura))
 
         if self.jogador.olhandoParaDireita == True:
             self.direcao = 1
         else:
             self.direcao = -1
-            self.sprite = pygame.transform.flip(self.sprite, True, False)
 
-        self.rect = pygame.Rect(self.jogador.rect.x + self.direcao, self.jogador.rect.y + 16, self.largura, self.altura)
+        self.rect = pygame.Rect(self.jogador.rect.x + self.direcao, self.jogador.rect.y + 20, self.largura, self.altura)
 
         self.velocidade = 20
 
@@ -326,8 +295,8 @@ class Tilemap:
 
         self.texturas = [
             '',
-            pygame.transform.scale(pygame.image.load("Assets/Sprites/Mundo/grama.png"), (self.tamanhoTile, self.tamanhoTile)),
-            pygame.transform.scale(pygame.image.load("Assets/Sprites/Mundo/terra.png"), (self.tamanhoTile, self.tamanhoTile)),
+            pygame.transform.scale(pygame.image.load("Aula 7 (Combate 2)/grama.png"), (self.tamanhoTile, self.tamanhoTile)),
+            pygame.transform.scale(pygame.image.load("Aula 7 (Combate 2)/terra.png"), (self.tamanhoTile, self.tamanhoTile))
         ]
 
         self.colisores = colisores
@@ -381,7 +350,7 @@ class Espinho:
         self.largura = 64
         self.altura = 64
 
-        self.sprite = pygame.image.load("Assets/Sprites/Mundo/espinho.png")
+        self.sprite = pygame.image.load("Aula 7 (Combate 2)/espinho.png")
         self.sprite = pygame.transform.scale(self.sprite, (self.largura, self.altura))
 
         self.rect = pygame.Rect(x, y, self.largura, self.altura)
@@ -402,42 +371,16 @@ class InimigoPatrulhador:
     def __init__(self, amplitude, objetos, x, y):
         self.objetos = objetos
 
-        self.largura = 128
+        self.largura = 64
         self.altura = 128
 
-        self.sprite = pygame.image.load("Assets/Sprites/Inimigo/andando1.png")
-        self.sprite = pygame.transform.scale(self.sprite, (self.largura, self.altura))
+        self.spriteOriginal = pygame.image.load("Aula 7 (Combate 2)/zombie.png")
+        self.spriteOriginal = pygame.transform.scale(self.spriteOriginal, (self.largura, self.altura))
 
-        #self.spriteDano = pygame.image.load("Aula 7 (Combate 2)/zombie dano.png")
-        #self.spriteDano = pygame.transform.scale(self.spriteDano, (self.largura, self.altura))
+        self.spriteDano = pygame.image.load("Aula 7 (Combate 2)/zombie dano.png")
+        self.spriteDano = pygame.transform.scale(self.spriteDano, (self.largura, self.altura))
 
-        self.animacoes = {
-            'andando': {
-                'nome': 'andando',
-                'sprites': [
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Inimigo/andando1.png"), (self.largura, self.altura)),
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Inimigo/andando2.png"), (self.largura, self.altura)),
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Inimigo/andando3.png"), (self.largura, self.altura)),
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Inimigo/andando4.png"), (self.largura, self.altura)),
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Inimigo/andando5.png"), (self.largura, self.altura)),
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Inimigo/andando6.png"), (self.largura, self.altura)),
-                    ],
-                'velocidade': 0.11
-            },
-            'dano': {
-                'nome': 'dano',
-                'sprites': [
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Inimigo/dano.png"), (self.largura, self.altura)),
-                ],
-                'velocidade': 0.1
-            }
-        }
-
-        self.animador = Animador(self.animacoes)
-
-        self.animador.DefinirAnimacao('andando')
-
-        self.sprite = self.sprite
+        self.sprite = self.spriteOriginal
 
         self.indo = True
         self.amplitude = amplitude
@@ -450,7 +393,7 @@ class InimigoPatrulhador:
         self.vidaAtual = self.vidaMaxima
         self.dano = 2
 
-        self.morteSFX = pygame.mixer.Sound("Assets/SFX/inimigoMorte.wav")
+        self.morteSFX = pygame.mixer.Sound("Aula 9 (SOM)/SFX/inimigoMorte.wav")
         self.morteSFX.set_volume(0.1)
 
         self.velocidade = 3
@@ -472,25 +415,14 @@ class InimigoPatrulhador:
 
     def LevarDano(self, dano):
         self.vidaAtual -= dano
+        self.sprite = self.spriteDano
         self.levandoDano = True
 
     def Desenhar(self, superficie):
-        self.sprite = self.animador.SpriteAtual()
-        if self.indo == False:
-            self.sprite = pygame.transform.flip(self.sprite, True, False)
         superficie.blit(self.sprite, (self.rect.x, self.rect.y))
-
-    def Animar(self):
-        if self.levandoDano ==  True and self.animador.AnimacaoAtual() != 'dano':
-            self.animador.DefinirAnimacao('dano')
-
-        elif self.animador.AnimacaoAtual() != 'andando':
-            self.animador.DefinirAnimacao('andando')
 
     def Atualizar(self):
         self.Movimento()
-        self.Animar()
-        self.animador.Atualizar()
 
         for objeto in self.objetos.lista:
             if isinstance(objeto, Jogador):
@@ -501,6 +433,7 @@ class InimigoPatrulhador:
             self.temporizadorDano += 1
 
             if self.temporizadorDano > 10:
+                self.sprite = self.spriteOriginal
                 self.levandoDano = False
                 self.temporizadorDano = 0
 
@@ -516,38 +449,43 @@ class Moeda:
 
         self.objetos = objetos
 
-        for objeto in self.objetos.lista:
-            if isinstance(objeto, Jogador):
-                self.jogador = objeto
-
-        self.sprite = pygame.image.load("Assets/Sprites/Moeda/cenoura1.png")
+        self.sprite = pygame.image.load("Aula 7 (Combate 2)/moeda.png")
         self.sprite = pygame.transform.scale(self.sprite, (self.largura, self.altura))
 
         self.animacoes = {
-            'rodando': {
-                'nome': 'rodando',
+            'girando': {
+                'nome': 'girando',
                 'sprites': [
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/cenoura1.png"), (self.largura, self.altura)),
-                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/cenoura2.png"), (self.largura, self.altura)),
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/moeda1.png"), (self.largura, self.altura)),
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/moeda2.png"), (self.largura, self.altura)),
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/moeda3.png"), (self.largura, self.altura)),
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/moeda4.png"), (self.largura, self.altura)),
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/moeda5.png"), (self.largura, self.altura)),
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/moeda6.png"), (self.largura, self.altura)),
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/moeda7.png"), (self.largura, self.altura)),
+                    pygame.transform.scale(pygame.image.load("Assets/Sprites/Moeda/moeda8.png"), (self.largura, self.altura)),
                 ],
                 'velocidade': 0.1
             }
         }
 
         self.animador = Animador(self.animacoes)
+        self.animador.DefinirAnimacao("girando")
 
-        self.animador.DefinirAnimacao('rodando')
+        for objeto in self.objetos.lista:
+            if isinstance(objeto, Jogador):
+                self.jogador = objeto
 
         self.yInicial = y
         self.indo = True
         self.rect = pygame.Rect(x, y, self.largura, self.altura)
         self.velocidade = 1
 
-        self.moedaSFX = pygame.mixer.Sound("Assets/SFX/moeda.wav")
+        self.moedaSFX = pygame.mixer.Sound("Aula 9 (SOM)/SFX/moeda.wav")
         self.moedaSFX.set_volume(0.1)
 
     def Desenhar(self, superficie):
-        self.sprite = self.animador.SpriteAtual()
+        self.sprite = self.animador.PuxarSpriteAtual()
         superficie.blit(self.sprite, (self.rect.x, self.rect.y))
 
     def Atualizar(self):
@@ -582,14 +520,14 @@ class HUD:
     def __init__(self, jogador):
         self.jogador = jogador
 
-        self.coracao = pygame.image.load("Assets/Sprites/UI/coracao.png")
+        self.coracao = pygame.image.load("Aula 8 (HUD)/coracao.png")
         self.coracao = pygame.transform.scale(self.coracao, (48, 48))
 
-        self.moeda = pygame.image.load("Assets/Sprites/UI/cenoura1.png")
+        self.moeda = pygame.image.load("Aula 8 (HUD)/moeda.png")
         self.moeda = pygame.transform.scale(self.moeda, (48, 48))
 
     def Mostrar(self, superficie):
-        fonte = pygame.font.Font("Assets/Kenney Pixel Square.ttf", 32)
+        fonte = pygame.font.Font("Aula 8 (HUD)/Kenney Pixel Square.ttf", 32)
 
         for i in range(self.jogador.vidaAtual):
             superficie.blit(self.coracao, (48 + 48 * i * 1.25, 48))
@@ -608,7 +546,7 @@ class Portal:
         self.largura = 256
         self.altura = 64*5
 
-        self.sprite = pygame.image.load("Assets/Sprites/Mundo/portal.png")
+        self.sprite = pygame.image.load("Aula 10 (Fases)/portal.png")
         self.sprite = pygame.transform.scale(self.sprite, (self.largura, self.altura))
 
         self.rect = pygame.Rect(x, y, self.largura, self.altura)
@@ -622,12 +560,12 @@ class Portal:
 
 class Fase1:
     def __init__(self, gerenciadorDeFases):
-        self.mundo = pygame.surface.Surface((64*20, 64*12))
+        self.mundo = pygame.surface.Surface((64*100, 64*50))
         self.mixer = pygame.mixer
 
         self.gerenciadorDeFases = gerenciadorDeFases
 
-        self.mixer.music.load("Assets/BGM/musica1.mp3")
+        self.mixer.music.load("Aula 9 (SOM)/BGM/musica1.mp3")
         self.mixer.music.set_volume(0.1)
         self.mixer.music.play(-1)
 
@@ -639,36 +577,58 @@ class Fase1:
         self.objetos.Adicionar(self.jogador)
 
         mapa = [
-            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2],
-            [2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-            [2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-            [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
-            [2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2],
-            [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2],
-            [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2],
-            [2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 2],
-            [2, 1, 1, 1, 0, 0, 0, 0, 0, 2, 2, 1, 0, 0, 0, 2, 2, 2, 2, 2],
-            [2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2],
-            [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2]
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,1,1,1,0,0,0,0,1,1,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,2,2,1,0,0,0,2,2,2,2,2,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,2,0,0,0,0,0,2,2,2,0,0,0,2,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,2,2,2,0,0,0,2,2,2,2,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+            [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
         ]
 
         self.tilemap = Tilemap(self.colisores, mapa)
         self.objetos.Adicionar(self.tilemap)
 
         self.espinhos = [
-            Espinho(self.jogador, 64*12, 64*10),
-            Espinho(self.jogador, 64*13, 64*10),
-            Espinho(self.jogador, 64*14, 64*10),
+            Espinho(self.jogador, 512, 64*14),
+            Espinho(self.jogador, 576, 64*14),
+            Espinho(self.jogador, 64*19, 64*14),
+            Espinho(self.jogador, 64*20, 64*14),
+            Espinho(self.jogador, 64*21, 64*14),
+            Espinho(self.jogador, 64*26, 64*14),
+            Espinho(self.jogador, 64*27, 64*14),
+            Espinho(self.jogador, 64*28, 64*14),
         ]
 
         for espinho in self.espinhos:
             self.objetos.Adicionar(espinho)
 
-        self.moeda1 = Moeda(self.objetos, 64*10, 64*7)
+        self.inimigo1 = InimigoPatrulhador(256, self.objetos, 64*8, 64*13)
+        self.objetos.Adicionar(self.inimigo1)
+
+        self.moeda1 = Moeda(self.objetos, 64*20, 64*8)
         self.objetos.Adicionar(self.moeda1)
 
-        self.moeda2 = Moeda(self.objetos, 64*15, 64*5)
+        self.moeda2 = Moeda(self.objetos, 64*27, 64*8)
         self.objetos.Adicionar(self.moeda2)
 
         self.camera = CameraQueSegue(self.jogador, self.mundo)
@@ -699,7 +659,7 @@ class Fase2:
 
         self.gerenciadorDeFases = gerenciadorDeFases
 
-        self.mixer.music.load("Assets/BGM/musica1.mp3")
+        self.mixer.music.load("Aula 9 (SOM)/BGM/musica1.mp3")
         self.mixer.music.set_volume(0.1)
         self.mixer.music.play(-1)
 
@@ -771,7 +731,7 @@ class Fase2:
         self.hud = HUD(self.jogador)
         self.objetos.Adicionar(self.hud)
 
-        self.portal = Portal(self.jogador, "menu", self.gerenciadorDeFases, 64*35, 64*7)
+        self.portal = Portal(self.jogador, "fase2", self.gerenciadorDeFases, 64*35, 64*7)
         self.objetos.Adicionar(self.portal)
 
     def Atualizar(self):
@@ -786,81 +746,80 @@ class Fase2:
         self.camera.Mostrar(tela)
         self.hud.Mostrar(tela)
 
+class BotaoUI:
+    def __init__(self, x, y, largura, altura, texto, corNormal, corSelecionado, acao):
+        self.rect = pygame.Rect(x, y, largura, altura) #mesma coisa que criar todos 
+        #atributos e depois o rect
+
+        self.texto = texto
+
+        self.acao = acao
+
+        self.corNormal = corNormal
+        self.corSelecionado = corSelecionado
+        self.cor = self.corNormal
+
+        self.pressionado = False
+
+    def Desenhar(self, tela):
+        pygame.draw.rect(tela, self.cor, self.rect, 32, 50)
+        fonte = pygame.font.Font("Aula 8 (HUD)/Kenney Pixel Square.ttf", 32)
+        texto = fonte.render(self.texto, False, (255, 255, 255))
+        tela.blit(texto, (self.rect.x + self.rect.width/2 - texto.get_width()/2, self.rect.y + self.rect.height/2 - texto.get_height()/2))
+
+    def Atualizar(self):
+        posicaoMouse = pygame.mouse.get_pos()
+        clique = pygame.mouse.get_pressed() 
+        #retorna clique[0,1,2] #0 botao esquerdo, 1 botao do meio (scroll), 2 botao direito
+
+        if self.rect.collidepoint(posicaoMouse):
+            self.cor = self.corSelecionado
+
+            if clique[0] == True and self.pressionado == False:
+                print("clicou")
+                self.pressionado = True
+                self.Clicar()
+
+        else:
+            self.cor = self.corNormal
+            self.pressionado = False
+
+    def Clicar(self):
+        self.acao()
+
 class MenuInicial:
     def __init__(self, gerenciadorDeFases):
         self.gerenciadorDeFases = gerenciadorDeFases
+        self.grupoObjetos = Grupo()
 
         self.fundo = pygame.image.load("Assets/Sprites/UI/background.png")
         self.fundo = pygame.transform.scale(self.fundo, (1280, 720))
 
-        self.titulo = pygame.image.load("Assets/Sprites/UI/title.png")
-        self.titulo = pygame.transform.scale(self.titulo, (512+256+128, 256+128+64))
+        fonte = pygame.font.Font("Assets/Kenney Pixel Square.ttf", 100)
+        self.textoTitulo = fonte.render("Joguinho Fofo", False, (255, 255, 255))
 
-        self.grupoObjetos = Grupo()
-
-        self.fonte = pygame.font.Font("Assets/Kenney Pixel Square.ttf", 32)
-        self.texto = self.fonte.render("Pressione ESPAÇO para começar", True, (255, 255, 255))
-
-        #self.botaoIniciar = BotaoUI(640-128, 360, 256, 64, (0, 255, 0), "Iniciar")
-        self.botaoIniciar = BotaoUI(640-128, 360, 256, 64, (100, 255, 100), (0, 255, 0), "Iniciar", (255, 255, 255), self.Iniciar)
+        self.botaoIniciar = BotaoUI(512, 328, 256, 64, "iniciar", (0, 255, 0), (255, 0, 0), self.Iniciar)
         self.grupoObjetos.Adicionar(self.botaoIniciar)
-        
-        #self.botaoSair = BotaoUI(640-128, 360+64+32, 256, 64, (0, 255, 0), "Sair")
-        self.botaoSair = BotaoUI(640-128, 360+64+32, 256, 64, (100, 255, 100), (0, 255, 0), "Sair", (255, 255, 255), self.Sair)
+
+        self.botaoSair = BotaoUI(512, 392+32, 256, 64, "sair", (0, 255, 0), (255, 0, 0), self.Sair)
         self.grupoObjetos.Adicionar(self.botaoSair)
 
     def Iniciar(self):
         self.gerenciadorDeFases.CarregarFase("fase1")
 
     def Sair(self):
-        #global rodando
-        #rodando = False
-        pygame.quit()
-        sys.exit()
+        #pygame.quit()
+        global rodando
+        rodando = False
 
     def Atualizar(self):
         self.grupoObjetos.Atualizar()
 
     def Desenhar(self, tela):
         tela.fill((0, 0, 0))
-        
         tela.blit(self.fundo, (0, 0))
-        tela.blit(self.titulo, (640-256-128-64, 0))
-
+        tela.blit(self.textoTitulo, (220, 100))
         self.grupoObjetos.Desenhar(tela)
-
-class BotaoUI:
-    def __init__(self, x, y, largura, altura, corNormal, corSelecionado, texto, corTexto, acao):
-        self.rect = pygame.Rect(x, y, largura, altura)
-        self.cor = corNormal
-        self.corNormal = corNormal
-        self.corSelecionado = corSelecionado
-        self.texto = texto
-        self.corTexto = corTexto
-        self.acao = acao
-
-    def Clicar(self):
-        self.acao()
-        pass
-
-    def Desenhar(self, tela):
-        pygame.draw.rect(tela, self.cor, self.rect)
-        fonte = pygame.font.Font("Assets/Kenney Pixel Square.ttf", 32)
-        texto = fonte.render(self.texto, True, (255, 255, 255))
-        tela.blit(texto, (self.rect.x + self.rect.width/2 - texto.get_width()/2, self.rect.y + self.rect.height/2 - texto.get_height()/2))
-
-    def Atualizar(self):
-        mouse = pygame.mouse.get_pos()
-        click = pygame.mouse.get_pressed()
-
-        if self.rect.x < mouse[0] < self.rect.x + self.rect.width and self.rect.y < mouse[1] < self.rect.y + self.rect.height:
-            self.cor = self.corSelecionado
-
-            if click[0] == 1:
-                self.Clicar()
-
-        else:
-            self.cor = self.corNormal
 
 class GerenciadorDeFases:
     def __init__(self, faseInicial):
@@ -868,7 +827,7 @@ class GerenciadorDeFases:
 
     def CarregarFase(self, fase):
         
-        if fase == "menu":
+        if fase == "menuInicial":
             self.faseAtual = MenuInicial(self)
 
         elif fase == "fase1":
@@ -883,32 +842,32 @@ class Animador:
     def __init__(self, animacoes):
         self.animacoes = animacoes
         self.animacaoAtual = None
-        self.velocidadeAtual = 0
+        self.velocidadeAnimacaoAtual = 0
         self.spritesAtuais = []
-        self.indice = 0
+        self.indice = 0        
 
-    def DefinirAnimacao(self, nome):
-        self.animacaoAtual = self.animacoes[nome]
+    def DefinirAnimacao(self, nomeAnimacao):
+        self.animacaoAtual = self.animacoes[nomeAnimacao]
         self.spritesAtuais = self.animacaoAtual['sprites']
-        self.velocidadeAtual = self.animacaoAtual['velocidade']
+        self.velocidadeAnimacaoAtual = self.animacaoAtual['velocidade']
         self.indice = 0
 
     def Atualizar(self):
-        self.indice += self.velocidadeAtual
+        self.indice += self.velocidadeAnimacaoAtual
 
         if self.indice >= len(self.spritesAtuais):
             self.indice = 0
-            
-    def SpriteAtual(self):
+
+    def PuxarSpriteAtual(self):
         return self.spritesAtuais[int(self.indice)]
-    
-    def AnimacaoAtual(self):
+
+    def PuxarAnimacaoAtual(self):
         return self.animacaoAtual['nome']
 
 rodando = True
 clock = pygame.time.Clock()
 
-gerenciadorDeFases = GerenciadorDeFases("menu")
+gerenciadorDeFases = GerenciadorDeFases("menuInicial")
 
 while rodando:
 

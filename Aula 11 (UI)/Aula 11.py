@@ -37,8 +37,8 @@ class Jogador:
         self.rect = pygame.Rect(self.xInicial, self.yInicial, self.largura, self.altura)
         self.cor = (135, 206, 235)
 
-        self.gatilhoPulo = False
-        self.gatilhoDisparo = False
+        self.pulou = False
+        self.atirou = False
 
         self.movimento = [0 ,0]
         self.velocidade = 10
@@ -185,21 +185,19 @@ class Jogador:
 
         teclas = pygame.key.get_pressed()
 
-        if teclas[pygame.K_SPACE] == True:
-            if self.gatilhoPulo == False:
-                self.Pulo()
-                self.gatilhoPulo = True
+        if teclas[pygame.K_SPACE] == True and self.pulou == False:
+            self.Pulo()
+            self.pulou = True
 
-        else:
-            self.gatilhoPulo = False
+        elif teclas[pygame.K_SPACE] == False:
+            self.pulou = False
 
-        if teclas[pygame.K_q] == True:
-            if self.gatilhoDisparo == False:
-                self.Disparar(self.objetos)
-                self.gatilhoDisparo = True
-        
-        else:
-            self.gatilhoDisparo = False
+        if teclas[pygame.K_q] == True and self.atirou == False: 
+            self.Disparar(self.objetos)
+            self.atirou = True
+
+        elif teclas[pygame.K_q] == False:
+            self.atirou = False
 
         if self.vidaAtual <= 0:
             self.Morrer()
@@ -758,10 +756,9 @@ class MenuInicial:
         self.gerenciadorDeFases.CarregarFase("fase1")
 
     def Sair(self):
-        #global rodando
-        #rodando = False
-        pygame.quit()
-        sys.exit()
+        #pygame.quit()
+        global rodando
+        rodando = False
 
     def Atualizar(self):
         self.grupoObjetos.Atualizar()
